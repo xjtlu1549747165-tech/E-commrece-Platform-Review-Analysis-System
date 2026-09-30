@@ -12,8 +12,7 @@ class jd_comment():
 
         self.page = ChromiumPage('127.0.0.1:9527')
         self.url = 'https://www.jd.com/'
-        # self.product_url = 'https://item.jd.com/100278221408.html'
-        self.product_url = 'https://npcitem.jd.hk/100142642296.html'
+        self.product_url = 'https://item.jd.com/100062690510.html#switch-sku'
 
 
         if 'item.jd.com/' in self.product_url:
