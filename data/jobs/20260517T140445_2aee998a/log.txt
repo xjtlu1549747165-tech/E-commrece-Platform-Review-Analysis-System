@@ -1,0 +1,4 @@
+[2026-05-17T14:04:45Z] Starting: D:\anaconda3\envs\crawler\python.exe -m crawler.xhs_crawler --track dse
+
+E:\Project4\jd_drissionpage_new\crawler\xhs_crawler.py:296: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  crawled_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")

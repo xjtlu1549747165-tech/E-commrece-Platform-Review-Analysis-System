@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Figures — XHS Insights{% endblock %}
+{% block header_title %}Figures{% endblock %}
+{% block header_sub %}Coarse vs engagement-weighted sentiment (from <code>src.nlp.process</code>) and word clouds. Select up to two tracks for side-by-side comparison.{% endblock %}
+
+{% block content %}
+<div
+  id="figures-page"
+  class="page-figures"
+  data-storage-key="xhs_figures_tracks"
+  data-max="2"
+  data-default-track="dse"
+>
+  <div class="track-picker" role="group" aria-label="Tracks for figures">
+    {% for key in track_keys %}
+    <label class="track-check">
+      <input type="checkbox" name="fig_track" value="{{ key }}"/> <span>{{ key }}</span>
+    </label>
+    {% endfor %}
+    {% if not track_keys %}
+    <p class="err">No tracks in metrics.json.</p>
+    {% endif %}
+  </div>
+
+  <div class="figures-grid" id="figures-grid">
+    {% for key in track_keys %}
+    <div class="figures-col track-figures" data-track="{{ key }}">
+      <h2>{{ key }}</h2>
+      {% set sc = 'figures/sentiment_compare_' + key + '.png' %}
+      {% set wc = 'figures/wordcloud_' + key + '.png' %}
+      <figure class="fig-block">
+        <figcaption>Sentiment (count vs weighted)</figcaption>
+        <img src="{{ url_for('static', filename=sc) }}" alt="sentiment {{ key }}" onerror="this.style.display='none'"/>
+      </figure>
+      <figure class="fig-block">
+        <figcaption>Word cloud</figcaption>
+        <img src="{{ url_for('static', filename=wc) }}" alt="wordcloud {{ key }}" onerror="this.style.display='none'"/>
+      </figure>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/track_picker.js') }}"></script>
+{% endblock %}

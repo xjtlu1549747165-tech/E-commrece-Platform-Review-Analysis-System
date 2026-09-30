@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Strategic brief — XHS Insights{% endblock %}
+{% block header_title %}Strategic brief{% endblock %}
+{% block header_sub %}History of generated briefs (UTC). Select an entry to view.{% endblock %}
+
+{% block content %}
+<div class="brief-layout">
+  <aside class="brief-list">
+    <h2>History</h2>
+    {% if briefs %}
+    <ul>
+      {% for b in briefs %}
+      <li>
+        <a href="{{ url_for('brief_view', brief_id=b.id) }}" class="{% if b.id == current_id %}active{% endif %}">
+          <strong>{{ b.created_utc }}</strong>
+          <span class="meta-line">Tracks: {{ b.tracks | join(', ') }} · Valid notes: {{ b.valid_notes_total }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="brief-empty">No briefs yet. Run:<br/>
+      <code>python scripts/generate_brief.py --tracks dse ielts_ai</code>
+    </p>
+    {% endif %}
+  </aside>
+  <div class="brief-body">
+    {% if body_html %}
+    <article class="prose">{{ body_html | safe }}</article>
+    {% elif current_id %}
+    <p class="err">Brief not found or file missing.</p>
+    {% else %}
+    <p class="brief-empty">Choose a brief from the list, or generate a new one.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}XHS Insights{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">XHS pipeline</div>
+    <nav class="nav">
+      <a href="{{ url_for('index') }}" class="nav-link{% if active_nav == 'overview' %} active{% endif %}">Overview</a>
+      <a href="{{ url_for('figures') }}" class="nav-link{% if active_nav == 'figures' %} active{% endif %}">Figures</a>
+      <a href="{{ url_for('brief_index') }}" class="nav-link{% if active_nav == 'brief' %} active{% endif %}">Brief</a>
+      <a href="{{ url_for('policy_page') }}" class="nav-link{% if active_nav == 'policy' %} active{% endif %}">Policy</a>
+      <a href="{{ url_for('pipeline_page') }}" class="nav-link{% if active_nav == 'pipeline' %} active{% endif %}">Pipeline</a>
+    </nav>
+  </aside>
+  <div class="main-wrap">
+    {% block header %}
+    <header class="top-header">
+      <h1>{% block header_title %}Mainland social buzz{% endblock %}</h1>
+      <p class="sub">{% block header_sub %}{% endblock %}</p>
+    </header>
+    {% endblock %}
+    <main class="main">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="footer-inner">
+      <p>Compliance: public fields only; authors masked in raw CSV. No phone/DM stored.</p>
+    </footer>
+  </div>
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

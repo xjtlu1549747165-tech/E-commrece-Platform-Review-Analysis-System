@@ -60,9 +60,34 @@ def build_explore_url(note_id: str, item: dict[str, Any]) -> str:
     return f"{base}?{urlencode(q)}"
 
 
+TRACK_ID_RE = re.compile(r"^[a-z0-9_]+$")
+
+
+def validate_track(track: str) -> str:
+    """Return normalized track id or raise ValueError."""
+    t = (track or "").strip().lower()
+    if not t or not TRACK_ID_RE.match(t):
+        raise ValueError(
+            f"Invalid track {track!r}: use lowercase letters, digits, underscores only."
+        )
+    path = CONFIG_DIR / f"{t}_keywords.yaml"
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing keyword config: {path}")
+    return t
+
+
+def discover_tracks() -> list[str]:
+    names: list[str] = []
+    for p in sorted(CONFIG_DIR.glob("*_keywords.yaml")):
+        stem = p.stem
+        if stem.endswith("_keywords"):
+            names.append(stem[: -len("_keywords")])
+    return names
+
+
 def load_config(track: str) -> dict[str, Any]:
-    name = "dse_keywords" if track == "dse" else "ielts_ai_keywords"
-    path = CONFIG_DIR / f"{name}.yaml"
+    t = validate_track(track)
+    path = CONFIG_DIR / f"{t}_keywords.yaml"
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -373,12 +398,17 @@ class XhsSearchCrawler:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Crawl Xiaohongshu search results by track config.")
-    parser.add_argument("--track", choices=("dse", "ielts_ai"), required=True)
+    parser.add_argument(
+        "--track",
+        required=True,
+        help="Track id matching config/{track}_keywords.yaml (e.g. dse, ielts_ai)",
+    )
     parser.add_argument("--address", default=None, help="Chromium debugger address, e.g. 127.0.0.1:9222")
     args = parser.parse_args()
     if args.address:
         os.environ["CHROMIUM_ADDRESS"] = args.address
-    crawler = XhsSearchCrawler(args.track)
+    track = validate_track(args.track)
+    crawler = XhsSearchCrawler(track)
     crawler.run()
 
 

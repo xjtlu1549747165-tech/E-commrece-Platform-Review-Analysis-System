@@ -1,0 +1,9 @@
+[2026-05-17T14:26:13Z] Starting: D:\anaconda3\envs\crawler\python.exe -m src.nlp.process --track all
+
+D:\anaconda3\envs\crawler\Lib\site-packages\jieba\_compat.py:18: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+Building prefix dict from the default dictionary ...
+Dumping model to file cache C:\Users\26283\AppData\Local\Temp\jieba.cache
+Loading model cost 0.376 seconds.
+Prefix dict has been built successfully.
+Wrote E:\Project4\jd_drissionpage_new\data\processed\metrics.json

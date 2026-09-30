@@ -1,0 +1,16 @@
+{
+  "job_id": "20260517T140445_2aee998a",
+  "type": "crawl",
+  "params": {
+    "track": "dse"
+  },
+  "status": "running",
+  "started_at": "2026-05-17T14:04:45Z",
+  "command": [
+    "D:\\anaconda3\\envs\\crawler\\python.exe",
+    "-m",
+    "crawler.xhs_crawler",
+    "--track",
+    "dse"
+  ]
+}

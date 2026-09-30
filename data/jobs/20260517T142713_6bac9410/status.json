@@ -1,0 +1,22 @@
+{
+  "job_id": "20260517T142713_6bac9410",
+  "type": "brief",
+  "params": {
+    "tracks": [
+      "dse"
+    ]
+  },
+  "status": "success",
+  "started_at": "2026-05-17T14:27:13Z",
+  "command": [
+    "D:\\anaconda3\\envs\\crawler\\python.exe",
+    "E:\\Project4\\jd_drissionpage_new\\scripts\\generate_brief.py",
+    "--tracks",
+    "dse"
+  ],
+  "finished_at": "2026-05-17T14:27:27Z",
+  "exit_code": 0,
+  "result": {
+    "brief_id": "20260517T142727Z"
+  }
+}

@@ -1,10 +1,11 @@
 # Competitor track — AI-assisted IELTS prep (narrow, product-adjacent)
-track: ielts_ai
+track: UnaGPT
 search_keywords:
-  - "IELTS Ready Premium"
-  - "雅思机考 口语 评分 AI"
-  - "雅思 写作 AI 批改"
-  - "IELTS 口语 AI"
+  - "UnaGPT"
+  - "DSE智能出题"
+  - "DSE试题"
+  - "DSE模拟测试"
+
 min_text_length: 20
 max_notes: 5000
 date_after: "2024-01-01"

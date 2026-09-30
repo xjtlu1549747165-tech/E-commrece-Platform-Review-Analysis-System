@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Pipeline — XHS Insights{% endblock %}
+{% block header_title %}Pipeline{% endblock %}
+{% block header_sub %}
+Run crawl, enrich, NLP, and strategic brief jobs from the browser. One job at a time. Uses the same Python as <code>run_dashboard.py</code>.
+{% endblock %}
+
+{% block content %}
+<div id="pipeline-page" class="pipeline-page">
+  <div id="chrome-status" class="chrome-status" aria-live="polite">Checking Chromium debugger…</div>
+
+  <div class="pipeline-grid">
+    <section class="pipeline-card">
+      <h2>1. Search crawl</h2>
+      <p class="meta">Requires logged-in Chrome at <code>CHROMIUM_ADDRESS</code> in <code>.env</code>.</p>
+      <label>Track <input type="text" id="crawl-track" class="pipeline-input" placeholder="e.g. dse" autocomplete="off"/></label>
+      <button type="button" class="btn-pipeline" data-job="crawl" id="btn-crawl">Run crawl</button>
+    </section>
+
+    <section class="pipeline-card">
+      <h2>2. Enrich</h2>
+      <p class="meta">Full body + comments per note (slow).</p>
+      <label>Track <input type="text" id="enrich-track" class="pipeline-input" placeholder="e.g. dse"/></label>
+      <label>Limit (optional) <input type="number" id="enrich-limit" class="pipeline-input pipeline-input-narrow" min="1" placeholder="all pending"/></label>
+      <button type="button" class="btn-pipeline" data-job="enrich" id="btn-enrich">Run enrich</button>
+    </section>
+
+    <section class="pipeline-card">
+      <h2>3. NLP process</h2>
+      <p class="meta">Rebuilds <code>metrics.json</code> and figure PNGs.</p>
+      <label>Track <input type="text" id="nlp-track" class="pipeline-input" placeholder="dse or all" value="all"/></label>
+      <button type="button" class="btn-pipeline" data-job="nlp" id="btn-nlp">Run NLP</button>
+    </section>
+
+    <section class="pipeline-card">
+      <h2>4. Generate brief</h2>
+      <p class="meta">Requires <code>OPENAI_API_KEY</code> in <code>.env</code>.</p>
+      <div id="brief-tracks" class="brief-tracks-checkboxes meta">Loading tracks…</div>
+      <button type="button" class="btn-pipeline" data-job="brief" id="btn-brief">Generate brief</button>
+    </section>
+  </div>
+
+  <section id="job-panel" class="job-panel hidden">
+    <h2>Job <span id="job-id-label"></span> <span id="job-status-badge" class="status-badge"></span></h2>
+    <p id="job-success-links" class="job-success-links hidden"></p>
+    <pre id="job-log" class="job-log" aria-live="polite"></pre>
+  </section>
+
+  <p class="meta pipeline-hint">Available configs: <span id="known-tracks">—</span></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pipeline.js') }}"></script>
+{% endblock %}

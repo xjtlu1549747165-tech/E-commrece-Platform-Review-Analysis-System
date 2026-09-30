@@ -17,7 +17,21 @@ copy .env.example .env
 
 Edit `.env`: set `CHROMIUM_ADDRESS` and (optional) `OPENAI_API_KEY` for the brief.
 
-## 1. Search crawl (two runs: DSE + competitor track)
+## Web UI (recommended)
+
+```bash
+python run_dashboard.py
+```
+
+Open `http://127.0.0.1:5000/pipeline` to run **crawl**, **enrich**, **NLP**, and **generate brief** from the browser (one job at a time). Enter any track id that has `config/{track}_keywords.yaml`. Start Chrome with remote debugging before crawl/enrich.
+
+Other pages: `/` Overview, `/figures`, `/brief`, `/policy`.
+
+Job logs: `data/jobs/<job_id>/log.txt`.
+
+## CLI reference (optional)
+
+### 1. Search crawl
 
 ```bash
 python -m crawler.xhs_crawler --track dse
@@ -30,7 +44,7 @@ Outputs append to `data/raw/xhs_{track}_raw.csv` and dedupe via `data/raw/.seen_
 
 **Note:** Listener targets URLs containing `search/notes`.
 
-## 2. Enrich: full post body + comments (slow)
+### 2. Enrich: full post body + comments (slow)
 
 Uses the logged-in browser session. Intercepts `sns/web/v1/feed` (full `desc` in `note_card`) and `sns/web/v2/comment/page` (up to **50 top-level** comments per note; **all replies** under those tops).
 
@@ -45,7 +59,7 @@ Updates `xhs_{track}_raw.csv` (`body_full`, `enrich_status`, …) and writes `da
 
 Config: `enrich_delay_sec`, `max_top_level_comments` in [`config/dse_keywords.yaml`](config/dse_keywords.yaml) / `ielts_ai_keywords.yaml`.
 
-## 3. NLP + metrics + word clouds (post + comments)
+### 3. NLP + metrics + word clouds (post + comments)
 
 `text_full` = **title** + **body** (`body_full` if present, else search `desc`) + **all comment texts** for that note from the comments CSV. TF-IDF / sentiment / wordcloud use this merged text.
 
@@ -56,25 +70,28 @@ python -m src.nlp.process
 Writes:
 
 - `data/processed/xhs_dse_processed.csv`, `xhs_ielts_ai_processed.csv`
-- `data/processed/metrics.json` (includes `comment_rows_total`, `notes_with_comments`, `avg_comments_per_valid_note`, `tfidf_note`)
+- `data/processed/metrics.json` (includes weighted sentiment fields, `comment_rows_total`, `notes_with_comments`, `avg_comments_per_valid_note`, `tfidf_note`)
 - `app/static/figures/wordcloud_*.png` (if a Chinese font is found on the system)
+- `app/static/figures/sentiment_compare_*.png` (coarse vs engagement-weighted bars)
 
-## 4. Notebook (optional charts)
+`python -m src.nlp.process --track all` processes every `data/raw/xhs_*_raw.csv` and expects `config/{track}_keywords.yaml` for each.
 
-Open `notebooks/analysis_xhs.ipynb` (set kernel to project env). Figures save under `Visualization/`.
+### 4. Notebook (optional charts)
 
-## 5. Flask dashboard
+Open `notebooks/analysis_xhs.ipynb` (set kernel to project env). Optional copies may save under `Visualization/`; the dashboard **Figures** tab reads PNGs from `app/static/figures/` produced by step 3.
+
+### 5. Flask dashboard (view only)
+
+Same `run_dashboard.py` as above — routes: `/` (Overview), `/figures`, `/brief` (brief history + Markdown render), `/policy` (regulatory prototype), `/pipeline` (run jobs).
+
+**Policy page assets:** PDFs under `app/static/policy/HK/`; metadata in [`app/policy_registry.py`](app/policy_registry.py) (no separate manifest file). Map GeoJSON: `app/static/geo/china_100000_full.json` (DataV boundary data). Replace placeholder PDFs with your HKEAA downloads using the same filenames.
+
+### 6. LLM strategic brief (optional)
+
+Each run appends a new file under `docs/briefs/` and updates `docs/briefs/index.json` (UTC timestamps). You must pass which tracks to include (must exist in `metrics.json`):
 
 ```bash
-python run_dashboard.py
-```
-
-Browse to `http://127.0.0.1:5000`.
-
-## 6. LLM strategic brief (optional)
-
-```bash
-python scripts/generate_brief.py --out docs/strategic_brief.md
+python scripts/generate_brief.py --tracks dse ielts_ai
 ```
 
 ## Data schema

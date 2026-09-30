@@ -1,0 +1,19 @@
+{
+  "job_id": "20260517T142613_f8750ef2",
+  "type": "nlp",
+  "params": {
+    "track": "all"
+  },
+  "status": "success",
+  "started_at": "2026-05-17T14:26:13Z",
+  "command": [
+    "D:\\anaconda3\\envs\\crawler\\python.exe",
+    "-m",
+    "src.nlp.process",
+    "--track",
+    "all"
+  ],
+  "finished_at": "2026-05-17T14:26:19Z",
+  "exit_code": 0,
+  "result": {}
+}

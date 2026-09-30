@@ -4,8 +4,7 @@ Generate a short English strategic brief from data/processed/metrics.json via LL
 Requires OPENAI_API_KEY and optional OPENAI_API_BASE / OPENAI_MODEL in .env.
 
 Usage:
-  python scripts/generate_brief.py
-  python scripts/generate_brief.py --out docs/strategic_brief.md
+  python scripts/generate_brief.py --tracks dse ielts_ai
 """
 from __future__ import annotations
 
@@ -13,12 +12,15 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[1]
+BRIEFS_DIR = ROOT / "docs" / "briefs"
+INDEX_PATH = BRIEFS_DIR / "index.json"
 
 
 def load_metrics() -> dict:
@@ -29,11 +31,31 @@ def load_metrics() -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def build_prompt(metrics: dict) -> str:
-    payload = json.dumps(metrics, ensure_ascii=False, indent=2)
+def filter_metrics(metrics: dict, tracks: list[str]) -> dict:
+    out: dict = {}
+    missing: list[str] = []
+    for t in tracks:
+        if t not in metrics:
+            missing.append(t)
+            continue
+        block = metrics[t]
+        if block.get("error"):
+            print(f"Track {t!r} has error in metrics: {block.get('error')}", file=sys.stderr)
+            sys.exit(1)
+        out[t] = block
+    if missing:
+        print(f"Unknown track(s) in metrics.json: {missing}", file=sys.stderr)
+        sys.exit(1)
+    return out
+
+
+def build_prompt(metrics_subset: dict, track_list: list[str]) -> str:
+    payload = json.dumps(metrics_subset, ensure_ascii=False, indent=2)
+    n = len(track_list)
+    names = ", ".join(track_list)
     return f"""You are an analyst helping Master Mock EduTech (Hong Kong) assess mainland China market entry for AI-assisted DSE preparation tools.
 
-Below is aggregated public-data analytics from Xiaohongshu (two tracks: DSE exam discussion vs IELTS AI prep products as a comparable "AI-assisted exam prep" segment). Text mining uses post titles, bodies (after enrichment), and public comment text where scraped; comment counts are in the JSON. No personal data is included.
+Below is aggregated public-data analytics from Xiaohongshu for {n} track(s): {names}. Each key in the JSON is one track. Text mining uses post titles, bodies (after enrichment), and public comment text where scraped; engagement fields informed a weighted sentiment summary in the JSON. No personal data is included.
 
 Data (JSON):
 {payload}
@@ -73,17 +95,67 @@ def call_llm(prompt: str) -> str:
     return data["choices"][0]["message"]["content"]
 
 
+def valid_notes_total(metrics_subset: dict) -> int:
+    return int(sum(int(v.get("valid_count") or 0) for v in metrics_subset.values()))
+
+
+def append_index(entry: dict) -> None:
+    BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
+    if INDEX_PATH.exists():
+        try:
+            data = json.loads(INDEX_PATH.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            data = {"briefs": []}
+    else:
+        data = {"briefs": []}
+    briefs = data.setdefault("briefs", [])
+    briefs.insert(0, entry)
+    INDEX_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--out", type=Path, default=ROOT / "docs" / "strategic_brief.md")
+    parser = argparse.ArgumentParser(description="Generate strategic brief from metrics (append-only under docs/briefs/).")
+    parser.add_argument(
+        "--tracks",
+        nargs="+",
+        required=True,
+        metavar="TRACK",
+        help="One or more track ids (keys in metrics.json), e.g. dse ielts_ai",
+    )
     args = parser.parse_args()
+    tracks = list(dict.fromkeys(args.tracks))
+
     metrics = load_metrics()
-    prompt = build_prompt(metrics)
+    subset = filter_metrics(metrics, tracks)
+    prompt = build_prompt(subset, tracks)
     text = call_llm(prompt)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    header = "# AI-assisted exam prep — strategic brief (draft)\n\n_Generated from aggregated metrics; not legal or investment advice._\n\n"
-    args.out.write_text(header + text, encoding="utf-8")
-    print(f"Wrote {args.out}")
+
+    now = datetime.now(timezone.utc)
+    brief_id = now.strftime("%Y%m%dT%H%M%SZ")
+    created_utc = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    fname = f"brief_{brief_id}.md"
+    out_md = BRIEFS_DIR / fname
+
+    BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
+    header = (
+        "# AI-assisted exam prep — strategic brief (draft)\n\n"
+        f"_Generated at {created_utc} (UTC) from tracks: {', '.join(tracks)}; "
+        f"valid notes used: {valid_notes_total(subset)}._\n\n"
+        "_Not legal or investment advice._\n\n"
+    )
+    out_md.write_text(header + text, encoding="utf-8")
+
+    append_index(
+        {
+            "id": brief_id,
+            "created_utc": created_utc,
+            "tracks": tracks,
+            "valid_notes_total": valid_notes_total(subset),
+            "filename": fname,
+        }
+    )
+    print(f"Wrote {out_md}")
+    print(f"Updated {INDEX_PATH}")
 
 
 if __name__ == "__main__":

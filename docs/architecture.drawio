@@ -16,19 +16,31 @@
         <mxCell id="enrich" value="xhs_enrich&#xa;feed + comment/page&#xa;body_full + comments CSV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
           <mxGeometry x="660" y="75" width="170" height="80" as="geometry"/>
         </mxCell>
-        <mxCell id="nlp" value="Cleaning + validity&#xa;text_full = post + comments&#xa;jieba / TF-IDF / sentiment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+        <mxCell id="nlp" value="Cleaning + validity&#xa;text_full = post + comments&#xa;jieba / TF-IDF / coarse + weighted sentiment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
           <mxGeometry x="860" y="75" width="200" height="85" as="geometry"/>
         </mxCell>
-        <mxCell id="proc" value="Processed + metrics.json&#xa;data/processed/" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+        <mxCell id="proc" value="Processed + metrics.json&#xa;data/processed/&#xa;+ static figures PNGs" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
           <mxGeometry x="1090" y="70" width="170" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="staticfig" value="app/static/figures/&#xa;wordcloud_*.png&#xa;sentiment_compare_*.png" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="200" width="170" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="briefstore" value="Strategic briefs&#xa;docs/briefs/*.md&#xa;+ index.json" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="980" y="320" width="160" height="80" as="geometry"/>
         </mxCell>
         <mxCell id="nb" value="Notebook charts&#xa;notebooks/analysis_xhs.ipynb" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="260" y="240" width="200" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="flask" value="Flask dashboard&#xa;run_dashboard.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+        <mxCell id="flask" value="Flask dashboard&#xa;run_dashboard.py&#xa;/pipeline /brief /policy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="520" y="240" width="180" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="llm" value="LLM brief&#xa;scripts/generate_brief.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+        <mxCell id="jobsdir" value="Pipeline jobs&#xa;data/jobs/&#xa;subprocess + logs" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="720" y="330" width="140" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="policyassets" value="Policy prototype&#xa;static/policy/HK/*.pdf&#xa;static/geo/*.json&#xa;policy_registry.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="520" y="340" width="180" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="llm" value="LLM brief&#xa;generate_brief.py&#xa;--tracks (append-only)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
           <mxGeometry x="760" y="240" width="180" height="70" as="geometry"/>
         </mxCell>
         <mxCell id="comp" value="Compliance: public fields only,&#xa;PIPL-aware minimization,&#xa;no phone / DM stored" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=2" vertex="1" parent="1">
@@ -56,6 +68,30 @@
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
         <mxCell id="e7" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="proc" target="llm">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="proc" target="staticfig">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="llm" target="briefstore">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" style="endArrow=classic;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=1;" edge="1" parent="1" source="flask" target="briefstore">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e11" style="endArrow=classic;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=1;" edge="1" parent="1" source="flask" target="staticfig">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e12" style="endArrow=classic;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;" edge="1" parent="1" source="flask" target="policyassets">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e13" style="endArrow=classic;html=1;exitX=1;exitY=0.75;entryX=0;entryY=0.5;dashed=1;" edge="1" parent="1" source="flask" target="jobsdir">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14" style="endArrow=classic;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;dashed=1;" edge="1" parent="1" source="jobsdir" target="crawl">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e15" style="endArrow=classic;html=1;exitX=0.5;exitY=0;entryX=0.25;entryY=1;dashed=1;" edge="1" parent="1" source="jobsdir" target="nlp">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
       </root>

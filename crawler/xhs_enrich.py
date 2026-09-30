@@ -26,7 +26,7 @@ import pandas as pd
 import yaml
 from DrissionPage import ChromiumPage
 
-from crawler.xhs_crawler import FIELDNAMES, ROOT, api_data_dict, load_config
+from crawler.xhs_crawler import FIELDNAMES, ROOT, api_data_dict, load_config, validate_track
 from crawler.xhs_parse import parse_comment_page, parse_feed_body
 
 RAW_DIR = ROOT / "data" / "raw"
@@ -516,14 +516,19 @@ def run_enrich(track: str, limit: int | None, start_row: int, address: str | Non
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Enrich raw CSV with feed body + comments.")
-    parser.add_argument("--track", choices=("dse", "ielts_ai"), required=True)
+    parser.add_argument(
+        "--track",
+        required=True,
+        help="Track id matching config/{track}_keywords.yaml",
+    )
     parser.add_argument("--limit", type=int, default=None, help="Max notes to process")
     parser.add_argument("--start-row", type=int, default=0, help="DataFrame row index to start")
     parser.add_argument("--address", default=None)
     args = parser.parse_args()
     if args.address:
         os.environ["CHROMIUM_ADDRESS"] = args.address
-    run_enrich(args.track, args.limit, args.start_row, args.address)
+    track = validate_track(args.track)
+    run_enrich(track, args.limit, args.start_row, args.address)
 
 
 if __name__ == "__main__":

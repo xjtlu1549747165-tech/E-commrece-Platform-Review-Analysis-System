@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from collections import Counter
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -90,8 +90,10 @@ def load_stopwords() -> set[str]:
 
 
 def load_track_config(track: str) -> dict[str, Any]:
-    name = "dse_keywords" if track == "dse" else "ielts_ai_keywords"
-    with open(CONFIG / f"{name}.yaml", encoding="utf-8") as f:
+    path = CONFIG / f"{track}_keywords.yaml"
+    if not path.exists():
+        raise FileNotFoundError(f"missing keyword config: {path}")
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -240,6 +242,103 @@ def _export_wordcloud_png(track: str, texts: list[str], root: Path) -> None:
         print(f"[wordcloud:{track}] skipped: {e}", file=sys.stderr)
 
 
+def _parse_nonneg_int(val: Any) -> int:
+    if val is None or (isinstance(val, float) and math.isnan(val)):
+        return 0
+    s = str(val).strip()
+    if not s:
+        return 0
+    try:
+        return max(0, int(float(s)))
+    except ValueError:
+        return 0
+
+
+def engagement_weight(row: pd.Series) -> float:
+    """w = 1 + log(1+likes) + 2*log(1+collects) + 1.5*log(1+comments_count)."""
+    likes = _parse_nonneg_int(row.get("likes"))
+    collects = _parse_nonneg_int(row.get("collects"))
+    comments = _parse_nonneg_int(row.get("comments_count"))
+    return (
+        1.0
+        + math.log1p(likes)
+        + 2.0 * math.log1p(collects)
+        + 1.5 * math.log1p(comments)
+    )
+
+
+def _sentiment_weighted_mass(valid_df: pd.DataFrame) -> dict[str, float]:
+    masses: dict[str, float] = {"anxiety": 0.0, "neutral": 0.0, "positive": 0.0}
+    for _, r in valid_df.iterrows():
+        lab = str(r.get("sentiment_coarse") or "neutral")
+        if lab not in masses:
+            lab = "neutral"
+        masses[lab] += float(engagement_weight(r))
+    return masses
+
+
+def _export_sentiment_compare_png(
+    track: str,
+    unweighted: dict[str, int],
+    weighted_mass: dict[str, float],
+    root: Path,
+) -> None:
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        return
+
+    order = ("anxiety", "neutral", "positive")
+    colors = ("#e57373", "#90a4ae", "#81c784")
+    labels_disp = ("anxiety", "neutral", "positive")
+
+    uw_vals = [int(unweighted.get(k, 0) or 0) for k in order]
+    w_vals = [float(weighted_mass.get(k, 0.0) or 0.0) for k in order]
+
+    if sum(uw_vals) == 0 and sum(w_vals) == 0:
+        return
+
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(10, 4))
+    ax0.bar(labels_disp, uw_vals, color=colors)
+    ax0.set_title("Coarse sentiment (count)")
+    ax0.set_ylabel("count")
+
+    ax1.bar(labels_disp, w_vals, color=colors)
+    ax1.set_title("Engagement-weighted mass")
+    ax1.set_ylabel("weighted sum")
+
+    for ax in (ax0, ax1):
+        ax.set_facecolor("#1a2332")
+        for spine in ax.spines.values():
+            spine.set_color("#2c3b52")
+        ax.tick_params(colors="#b8c5d6")
+        ax.yaxis.label.set_color("#b8c5d6")
+        ax.xaxis.label.set_color("#b8c5d6")
+        ax.title.set_color("#e7ecf3")
+
+    fig.patch.set_facecolor("#0f1419")
+    plt.tight_layout()
+    out_dir = root / "app" / "static" / "figures"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"sentiment_compare_{track}.png"
+    try:
+        fig.savefig(out_path, dpi=120, bbox_inches="tight", facecolor="#0f1419")
+    finally:
+        plt.close(fig)
+
+
+def discover_tracks_from_raw() -> list[str]:
+    names: list[str] = []
+    for p in sorted(RAW.glob("xhs_*_raw.csv")):
+        stem = p.stem
+        if stem.startswith("xhs_") and stem.endswith("_raw"):
+            names.append(stem[4:-4])
+    return names
+
+
 def month_key_from_row(pub: str) -> str | None:
     if not pub or len(str(pub)) < 7:
         return None
@@ -250,12 +349,21 @@ def month_key_from_row(pub: str) -> str | None:
 
 
 def process_track(track: str, stop: set[str]) -> dict[str, Any]:
-    cfg = load_track_config(track)
     raw_path = RAW / f"xhs_{track}_raw.csv"
     if not raw_path.exists():
         return {
             "track": track,
             "error": f"missing {raw_path}",
+            "raw_count": 0,
+            "valid_count": 0,
+        }
+
+    try:
+        cfg = load_track_config(track)
+    except FileNotFoundError as e:
+        return {
+            "track": track,
+            "error": str(e),
             "raw_count": 0,
             "valid_count": 0,
         }
@@ -292,6 +400,13 @@ def process_track(track: str, stop: set[str]) -> dict[str, Any]:
     _export_wordcloud_png(track, texts, ROOT)
 
     sent_dist = Counter(valid_df["sentiment_coarse"])
+    w_mass = _sentiment_weighted_mass(valid_df)
+    w_total = sum(w_mass.values()) or 1.0
+    sent_dist_w_pct = {k: round(100.0 * w_mass[k] / w_total, 2) for k in ("anxiety", "neutral", "positive")}
+
+    if valid_count > 0:
+        _export_sentiment_compare_png(track, dict(sent_dist), w_mass, ROOT)
+
     monthly: Counter[str] = Counter()
     for _, r in valid_df.iterrows():
         mk = month_key_from_row(str(r.get("publish_time", "")))
@@ -328,6 +443,8 @@ def process_track(track: str, stop: set[str]) -> dict[str, Any]:
         "raw_count": raw_count,
         "valid_count": valid_count,
         "sentiment_distribution": dict(sent_dist),
+        "sentiment_weighted_mass": w_mass,
+        "sentiment_distribution_weighted": sent_dist_w_pct,
         "tfidf_top": tfidf_top,
         "tfidf_note": "Merged post title, body (body_full or desc), and all scraped comments for this track.",
         "monthly_counts": dict(sorted(monthly.items())),
@@ -345,10 +462,14 @@ def main() -> None:
     stop = load_stopwords()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--track", choices=("dse", "ielts_ai", "all"), default="all")
+    parser.add_argument(
+        "--track",
+        default="all",
+        help="Single track id (matches xhs_{track}_raw.csv) or 'all' for every raw file in data/raw.",
+    )
     args = parser.parse_args()
 
-    tracks = ["dse", "ielts_ai"] if args.track == "all" else [args.track]
+    tracks = discover_tracks_from_raw() if args.track == "all" else [args.track]
     metrics: dict[str, Any] = {}
     for t in tracks:
         metrics[t] = process_track(t, stop)

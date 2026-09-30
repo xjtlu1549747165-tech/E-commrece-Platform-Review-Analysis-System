@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Policy — XHS Insights{% endblock %}
+{% block header_title %}Policy & regulatory references{% endblock %}
+{% block header_sub %}
+Prototype: national aggregate sources are not wired yet. Grey areas have no documents in this build; click <strong>Hong Kong SAR</strong> (blue) for HKEAA handbook placeholders (replace PDFs under <code>app/static/policy/HK/</code>).
+{% endblock %}
+
+{% block content %}
+<section id="policy-intro" class="policy-intro">
+  <h2>National / mainland aggregate</h2>
+  <p class="coming-soon">Coming soon. Central and provincial official sources will be linked after the content pipeline is defined.</p>
+</section>
+
+<div id="policy-map" class="policy-map" role="img" aria-label="China administrative map"></div>
+<p class="policy-map-hint meta">Grey regions are inactive in this prototype. Only <strong>Hong Kong SAR</strong> is selectable.</p>
+
+<section id="region-panel" class="region-panel hidden">
+  <div class="policy-toolbar">
+    <span class="policy-loaded meta">Last loaded: <strong>{{ last_loaded_utc }}</strong></span>
+    <button type="button" id="policy-refresh-btn" class="btn-policy">Refresh</button>
+    <label class="policy-search-wrap">
+      <span class="sr-only">Search document titles</span>
+      <input type="search" id="policy-search" class="policy-search-input" disabled placeholder="Select Hong Kong SAR on the map first…" autocomplete="off" aria-label="Filter documents by English title"/>
+    </label>
+  </div>
+
+  <h2>{{ region_label_hk }} — documents</h2>
+  {% if hk_docs %}
+  <ul id="policy-doc-list" class="policy-doc-list">
+    {% for doc in hk_docs %}
+    <li class="policy-doc-item" data-title-en="{{ doc.title_en }}">
+      <a href="{{ doc.pdf_url }}" target="_blank" rel="noopener noreferrer" class="policy-doc-title">{{ doc.title_en }}</a>
+      <dl class="policy-doc-meta">
+        <dt>Issuing body</dt><dd>{{ doc.issuer }}</dd>
+        <dt>Reference</dt><dd>{{ doc.reference }}</dd>
+        <dt>Source URL</dt><dd><a href="{{ doc.source_url }}" target="_blank" rel="noopener noreferrer">{{ doc.source_url }}</a></dd>
+        <dt>Excerpt date</dt><dd>{{ doc.excerpt_date }}</dd>
+      </dl>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="err">No documents registered for this region.</p>
+  {% endif %}
+</section>
+
+<section class="policy-disclaimer" aria-label="Disclaimer">
+  <h3>Disclaimer</h3>
+  <p>This page is for internal prototyping only. Materials are not legal advice. Verify all rules with the issuing authority; PDFs may be placeholders until replaced with official downloads.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js" crossorigin="anonymous"></script>
+<script>
+  window.__POLICY_GEO_URL__ = "{{ url_for('static', filename='geo/china_100000_full.json') }}";
+</script>
+<script src="{{ url_for('static', filename='js/policy_map.js') }}"></script>
+{% endblock %}

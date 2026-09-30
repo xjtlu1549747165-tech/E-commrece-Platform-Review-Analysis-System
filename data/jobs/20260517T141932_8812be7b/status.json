@@ -1,0 +1,19 @@
+{
+  "job_id": "20260517T141932_8812be7b",
+  "type": "enrich",
+  "params": {
+    "track": "dse"
+  },
+  "status": "failed",
+  "started_at": "2026-05-17T14:19:32Z",
+  "command": [
+    "D:\\anaconda3\\envs\\crawler\\python.exe",
+    "-m",
+    "crawler.xhs_enrich",
+    "--track",
+    "dse"
+  ],
+  "finished_at": "2026-05-17T14:24:10Z",
+  "exit_code": 1,
+  "error": "[2026-05-17T14:19:32Z] Starting: D:\\anaconda3\\envs\\crawler\\python.exe -m crawler.xhs_enrich --track dse\n"
+}

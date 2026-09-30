@@ -1,0 +1,32 @@
+{
+  "briefs": [
+    {
+      "id": "20260517T142727Z",
+      "created_utc": "2026-05-17T14:27:27Z",
+      "tracks": [
+        "dse"
+      ],
+      "valid_notes_total": 171,
+      "filename": "brief_20260517T142727Z.md"
+    },
+    {
+      "id": "20260414T165724Z",
+      "created_utc": "2026-04-14T16:57:24Z",
+      "tracks": [
+        "dse",
+        "ielts_ai"
+      ],
+      "valid_notes_total": 523,
+      "filename": "brief_20260414T165724Z.md"
+    },
+    {
+      "id": "20260413T111628Z",
+      "created_utc": "2026-04-13T11:16:28Z",
+      "tracks": [
+        "dse"
+      ],
+      "valid_notes_total": 520,
+      "filename": "brief_20260413T111628Z.md"
+    }
+  ]
+}
