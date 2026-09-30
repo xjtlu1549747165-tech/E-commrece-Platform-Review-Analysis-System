@@ -1,0 +1,26 @@
+# DSE track — Xiaohongshu search (simplified Chinese + common abbreviations)
+track: dse
+search_keywords:
+  - "DSE"
+  - "HKDSE"
+  - "香港高考"
+  - "港籍 内地 DSE"
+  - "内地 DSE"
+# Minimum combined title+desc length (characters) after trim
+min_text_length: 20
+# Target cap per track (valid rows); crawler stops when reached
+max_notes: 5000
+# Only keep notes on or after this date when publish_time parses (YYYY-MM-DD)
+date_after: "2024-01-01"
+# Hard-exclude if title+desc contains any of these (spam / off-topic)
+exclude_keywords:
+  - "加我微信"
+  - "私聊"
+  - "代购"
+# Optional extra stop patterns for validity (regex strings)
+exclude_regex: []
+
+# Enrichment phase (xhs_enrich): delay between notes (seconds)
+enrich_delay_sec: 3
+# Max top-level comments per note (replies do not count toward this cap)
+max_top_level_comments: 50
